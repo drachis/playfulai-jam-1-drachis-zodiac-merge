@@ -46,11 +46,21 @@ public class Bubble : MonoBehaviour
     {
         tier = Mathf.Max(1, t);
         points = 1 << (tier - 1);
-        float r = baseRadius * Mathf.Pow(10f, (tier - 1) / 8f); // R8
-        col.radius = r;
-        transform.localScale = Vector3.one * (r * spriteScale);
+
+        // Renard R8 radius in *local* units (no transform scaling)
+        float rLocal = baseRadius * Mathf.Pow(10f, (tier - 1) / 8f);
+        col.radius = rLocal;
+
+        // Keep transform scale = 1 to avoid double-scaling
+        transform.localScale = Vector3.one;
+
         RefreshMass();
+        UpdateVisuals();
     }
+
+    // World-space effective radius for visuals/merges
+    public float WorldRadius => col.bounds.extents.x;
+
 
     public void RefreshMass()
     {
@@ -75,4 +85,8 @@ public class Bubble : MonoBehaviour
 
     // Simple “attractor mass” used by GravityWell
     public float AttractorMass => Mathf.Max(0.5f, weight) * points;
+
+    void OnEnable() { if (!BubbleRegistry.Active.Contains(this)) BubbleRegistry.Active.Add(this); }
+    void OnDisable() { BubbleRegistry.Active.Remove(this); }
+
 }
