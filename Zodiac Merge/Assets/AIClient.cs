@@ -151,7 +151,7 @@ public class AIClient : MonoBehaviour
         Debug.Log("🚀 Testing Ollama connection...");
         var result = await GenerateAsync(
             new[] { "Fire Dragon", "Earth Snake" },
-            new[] { "🔥🐉", "🌱🐍" },
+            new[] { "🔥🐉", "🐍🌱" },
             8,
             MergeMode.Fusion
         );
