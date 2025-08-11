@@ -389,6 +389,10 @@ MonoBehaviour:
   chatUrl: http://localhost:11434/api/chat
   model: granite3.1-moe:1b
   temperature: 0.3
+  fusionPrompt: "Combine the creatures into a SINGLE hybrid creature with a 1\u20132
+    word name. Pick emoji that match the name."
+  mergePrompt: "Pretend the FIRST creature does fuses with the others; produce a
+    SINGLE child creature with a 1\u20132 word name. Pick emoji that match the name."
 --- !u!114 &1388589093
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -414,12 +418,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f1c556d0626f3e438694924b224b74e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseAdjacencyRadius: 0.3
-  scanInterval: 0.06666667
+  baseAdjacencyRadius: 0.1
+  scanInterval: 0.2
   bubbleLayer:
     serializedVersion: 2
-    m_Bits: 0
-  burstFx: {fileID: 0}
+    m_Bits: 64
+  burstFx: {fileID: 6611647428185705722, guid: a9539f1917b8f1b4da37173e313e2bc6, type: 3}
   ai: {fileID: 1388589092}
   canon: {fileID: 1388589091}
 --- !u!114 &1388589095
@@ -449,18 +453,11 @@ MonoBehaviour:
   - Dog
   - Pig
   seedEmojis:
-  - A
-  - B
-  - C
-  - D
-  - E
-  - F
-  - G
-  - H
-  - I
-  - J
-  - K
-  - L
+  - "\U0001F343"
+  - "\U0001F331"
+  - "\U0001F4A7"
+  - "\U0001F525"
+  - "\U0001F918"
   startCount: 12
   spawnRadius: 3
 --- !u!4 &1388589096

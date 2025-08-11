@@ -21,20 +21,21 @@ public class AIClient : MonoBehaviour
     [Header("Ollama")]
     public string chatUrl = "http://localhost:11434/api/chat";
     public string model = "gemma3n:latest"; 
-    public float temperature = 0.3f;  
+    public float temperature = 0.3f;
+
+  public string fusionPrompt = "Combine the creatures into a SINGLE hybrid creature with a 1–2 word name.";
+  public string mergePrompt = "Pretend the FIRST creature does fuses with the others; produce a SINGLE child creature with a 1–2 word name.";
+ 
 
     // Ollama structured output JSON Schema
-    readonly string schemaJson = @"
+  readonly string schemaJson = @"
     {
       ""type"": ""object"",
       ""properties"": {
-        ""emoji"": { ""type"": ""string"", ""minLength"": 1, ""maxLength"": 4 },
         ""name"":  { ""type"": ""string"", ""minLength"": 1, ""maxLength"": 40 },
-        ""gloss"": { ""type"": ""string"", ""minLength"": 4, ""maxLength"": 160 },
-        ""weight"":{ ""type"": ""integer"", ""minimum"": 1, ""maximum"": 7 },
-        ""tags"":  { ""type"": ""array"", ""items"": { ""type"": ""string"" }, ""default"": [] }
+        ""emoji"": { ""type"": ""string"", ""minLength"": 1, ""maxLength"": 4 }
       },
-      ""required"": [""emoji"", ""name"", ""gloss"", ""weight""]
+      ""required"": [""name"", ""emoji""]
     }";
 
     [Serializable] class ChatMessage { public string role; public string content; }
@@ -115,14 +116,14 @@ public class AIClient : MonoBehaviour
 
     string BuildUserPrompt(string[] n, string[] e, int tier, MergeMode mode)
     {
-        string spice = tier >= 7 ? "embrace surreal, dreamlike metaphors."
+        string spice = tier >= 7 ? "become surreal, overflow with dreamlike metaphors."
                     : tier >= 5 ? "allow abstract nouns and folklore hints."
                     : tier >= 3 ? "allow mild mythic metaphors."
                     : "stay concrete and visual.";
 
         string modeText = mode == MergeMode.Fusion
-            ? "Combine the items into a SINGLE concrete creature/object with a 1–2 word name."
-            : "Pretend the FIRST item acts on the others; produce a SINGLE resultant object with a short action‑hinting name.";
+            ? fusionPrompt
+            : "Pretend the FIRST item acts on the others; produce a SINGLE resultant create with a 1–2 word name. Pick emoji that match the name.";
 
         var list = "";
         for (int i = 0; i < n.Length; i++)
@@ -141,7 +142,7 @@ public class AIClient : MonoBehaviour
             : $"{src[0]}-{(src.Length > 1 ? src[1] : src[0])}";
         var emoji = (emo != null && emo.Length > 0 && !string.IsNullOrEmpty(emo[0])) ? emo[0] : "??";
         var weight = Mathf.Clamp(2 + tier / 2, 1, 7);
-        return new AIResult { emoji = emoji, name = name, gloss = "Locally synthesized.", weight = weight, tags = new[] { "local" } };
+        return new AIResult { emoji = emoji, name = name };
     }
 
     // Public test method that MUST be awaited
@@ -149,9 +150,9 @@ public class AIClient : MonoBehaviour
     {
         Debug.Log("🚀 Testing Ollama connection...");
         var result = await GenerateAsync(
-            new[] { "TestItem1", "TestItem2" },
-            new[] { "😀", "🚀" },
-            5,
+            new[] { "Fire Dragon", "Earth Snake" },
+            new[] { "🔥🐉", "🌱🐍" },
+            8,
             MergeMode.Fusion
         );
 
