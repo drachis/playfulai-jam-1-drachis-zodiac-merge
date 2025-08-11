@@ -39,7 +39,7 @@ public class AIClient : MonoBehaviour
   }";
 
   public async Task<AIResult> GenerateAsync(
-      string[] sourceNames, string[] sourceEmojis, int targetTier, MergeMode mode)
+    string[] sourceNames, string[] sourceEmojis, int targetTier, MergeMode mode)
   {
     string userPrompt = BuildUserPrompt(sourceNames, sourceEmojis, targetTier, mode);
     string sys = "You return ONLY the fields described by the provided JSON Schema.";
@@ -55,31 +55,60 @@ public class AIClient : MonoBehaviour
       ""options"": {{ ""temperature"": {temperature.ToString(System.Globalization.CultureInfo.InvariantCulture)} }}
     }}";
 
+    Debug.Log("Sending payload: " + payload);
+
     using var req = new UnityWebRequest(chatUrl, "POST");
     req.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(payload));
     req.downloadHandler = new DownloadHandlerBuffer();
     req.SetRequestHeader("Content-Type", "application/json");
 
     var op = req.SendWebRequest();
-    while (!op.isDone) await Task.Yield();
+    while (!op.isDone)
+    {
+        await Task.Yield();
+    }
+
+    // Log detailed response info
+    Debug.Log("Response code: " + req.responseCode);
+    Debug.Log("Downloaded data length: " + (req.downloadHandler.data?.Length ?? 0));
+    Debug.Log("Raw response: " + req.downloadHandler.text);
 
     if (req.result != UnityWebRequest.Result.Success)
     {
-      Debug.LogWarning($"Ollama chat error: {req.error}");
-      return Fallback(sourceNames, sourceEmojis, targetTier, mode);
+        Debug.LogWarning($"Ollama chat error: {req.error}, result: {req.result}");
+        if (string.IsNullOrEmpty(req.downloadHandler.text))
+            Debug.LogWarning("No content returned from server.");
+        return Fallback(sourceNames, sourceEmojis, targetTier, mode);
     }
 
-    // Ollama /api/chat returns: { message: { role, content }, ... }
+    // Check if raw response even contains a message field
+    if (!req.downloadHandler.text.Contains("message"))
+    {
+        Debug.LogWarning("Response does not contain 'message' field; response may be truncated or malformed.");
+    }
+
     try
     {
-      var root = JsonUtility.FromJson<ChatRoot>(req.downloadHandler.text);
-      var json = root.message.content;                 // this is schema-valid JSON
-      return JsonUtility.FromJson<AIResult>(json);
+        if (string.IsNullOrEmpty(req.downloadHandler.text))
+        {
+            Debug.LogWarning("Empty response text!");
+            return Fallback(sourceNames, sourceEmojis, targetTier, mode);
+        }
+
+        var root = JsonUtility.FromJson<ChatRoot>(req.downloadHandler.text);
+        if (root == null || root.message == null)
+        {
+            Debug.LogWarning("Failed to parse ChatRoot properly from response. Full response: " + req.downloadHandler.text);
+            return Fallback(sourceNames, sourceEmojis, targetTier, mode);
+        }
+        var json = root.message.content;
+        Debug.Log("Parsed JSON from response: " + json);
+        return JsonUtility.FromJson<AIResult>(json);
     }
     catch (Exception e)
     {
-      Debug.LogWarning($"Parse fail: {e.Message}");
-      return Fallback(sourceNames, sourceEmojis, targetTier, mode);
+        Debug.LogWarning($"Parse fail: {e.Message}. Full raw response: " + req.downloadHandler.text);
+        return Fallback(sourceNames, sourceEmojis, targetTier, mode);
     }
   }
 
