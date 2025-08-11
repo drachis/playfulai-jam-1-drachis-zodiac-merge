@@ -387,7 +387,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chatUrl: http://localhost:11434/api/chat
-  model: llama3.1
+  model: granite3.1-moe:1b
   temperature: 0.3
 --- !u!114 &1388589093
 MonoBehaviour:
