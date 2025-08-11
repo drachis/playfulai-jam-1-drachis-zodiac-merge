@@ -373,6 +373,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a662a7b59936a0444a8aed9dd3534214, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fileName: canon.json
 --- !u!114 &1388589092
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -400,8 +401,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d569146514e85c4abecc7351369ef31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pullStrength: 2.5
-  falloff: 1
+  pullStrength: 10
 --- !u!114 &1388589094
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -414,14 +414,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f1c556d0626f3e438694924b224b74e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseAdjacencyRadius: 1.2
-  scanInterval: 0.2
+  baseAdjacencyRadius: 0.3
+  scanInterval: 0.06666667
   bubbleLayer:
     serializedVersion: 2
     m_Bits: 0
   burstFx: {fileID: 0}
-  ai: {fileID: 0}
-  canon: {fileID: 0}
+  ai: {fileID: 1388589092}
+  canon: {fileID: 1388589091}
 --- !u!114 &1388589095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -449,19 +449,19 @@ MonoBehaviour:
   - Dog
   - Pig
   seedEmojis:
-  - ??
-  - ??
-  - ??
-  - ??
-  - ??
-  - ??
-  - ??
-  - ??
-  - ??
-  - ??
-  - ??
-  - ??
-  startCount: 4
+  - A
+  - B
+  - C
+  - D
+  - E
+  - F
+  - G
+  - H
+  - I
+  - J
+  - K
+  - L
+  startCount: 12
   spawnRadius: 3
 --- !u!4 &1388589096
 Transform:

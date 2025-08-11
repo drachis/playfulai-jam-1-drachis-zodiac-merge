@@ -58,7 +58,7 @@ public class GameController : MonoBehaviour
 
     void Shockwave(float power = 5f)
     {
-        var all = FindObjectsOfType<Bubble>();
+        var all = Object.FindObjectsByType<Bubble>(FindObjectsSortMode.None); // replaced FindObjectsOfType<Bubble>()
         foreach (var b in all)
         {
             Vector2 dir = (b.transform.position - Vector3.zero).normalized;
@@ -79,7 +79,7 @@ public class GameController : MonoBehaviour
     {
         // big ring shock; transient gravity boost
         Shockwave(6f);
-        var gw = FindObjectOfType<GravityWell>();
+        var gw = Object.FindFirstObjectByType<GravityWell>();
         if (gw) { float old = gw.pullStrength; gw.pullStrength *= 1.5f; Invoke(nameof(ResetGravity), 1.5f); void ResetGravity() { gw.pullStrength = old; } }
     }
 

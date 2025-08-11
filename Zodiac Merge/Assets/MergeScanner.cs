@@ -26,7 +26,7 @@ public class MergeScanner : MonoBehaviour
 
     void TryMergeOnce()
     {
-        var all = FindObjectsOfType<Bubble>();
+        var all = Object.FindObjectsByType<Bubble>(FindObjectsSortMode.None); // replaced FindObjectsOfType<Bubble>()
         if (all.Length == 0) return;
 
         // Determine highest target tier possible (look at total points heuristic)
@@ -144,7 +144,7 @@ public class MergeScanner : MonoBehaviour
         }
 
         // outward nudge
-        foreach (var b in FindObjectsOfType<Bubble>())
+        foreach (var b in Object.FindObjectsByType<Bubble>(FindObjectsSortMode.None)) // replaced FindObjectsOfType<Bubble>()
         {
             Vector2 dir = (b.transform.position - pos).normalized;
             b.ApplyImpulse(dir * 0.5f);

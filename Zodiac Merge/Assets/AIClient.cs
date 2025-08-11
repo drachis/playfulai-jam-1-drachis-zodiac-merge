@@ -18,14 +18,14 @@ public enum MergeMode { Fusion, Action }
 
 public class AIClient : MonoBehaviour
 {
-    [Header("Ollama")]
-    public string chatUrl = "http://localhost:11434/api/chat";
-    public string model = "llama3.1"; // any schema-capable model
-    public float temperature = 0.3f;   // can drop to 0 for max determinism
+  [Header("Ollama")]
+  public string chatUrl = "http://localhost:11434/api/chat";
+  public string model = "gemma3n:latest"; // any schema-capable model
+  public float temperature = 0.3f;   // can drop to 0 for max determinism
 
-    // JSON Schema Ollama will enforce
-    // (kept small & forgiving; validate emoji client-side if you want stricter)
-    readonly string schemaJson = @"
+  // JSON Schema Ollama will enforce
+  // (kept small & forgiving; validate emoji client-side if you want stricter)
+  readonly string schemaJson = @"
   {
     ""type"": ""object"",
     ""properties"": {
@@ -38,13 +38,13 @@ public class AIClient : MonoBehaviour
     ""required"": [""emoji"", ""name"", ""gloss"", ""weight""]
   }";
 
-    public async Task<AIResult> GenerateAsync(
-        string[] sourceNames, string[] sourceEmojis, int targetTier, MergeMode mode)
-    {
-        string userPrompt = BuildUserPrompt(sourceNames, sourceEmojis, targetTier, mode);
-        string sys = "You return ONLY the fields described by the provided JSON Schema.";
+  public async Task<AIResult> GenerateAsync(
+      string[] sourceNames, string[] sourceEmojis, int targetTier, MergeMode mode)
+  {
+    string userPrompt = BuildUserPrompt(sourceNames, sourceEmojis, targetTier, mode);
+    string sys = "You return ONLY the fields described by the provided JSON Schema.";
 
-        var payload = $@"{{
+    var payload = $@"{{
       ""model"": ""{model}"",
       ""messages"": [
         {{""role"": ""system"", ""content"": ""{Escape(sys)}""}},
@@ -55,64 +55,83 @@ public class AIClient : MonoBehaviour
       ""options"": {{ ""temperature"": {temperature.ToString(System.Globalization.CultureInfo.InvariantCulture)} }}
     }}";
 
-        using var req = new UnityWebRequest(chatUrl, "POST");
-        req.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(payload));
-        req.downloadHandler = new DownloadHandlerBuffer();
-        req.SetRequestHeader("Content-Type", "application/json");
+    using var req = new UnityWebRequest(chatUrl, "POST");
+    req.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(payload));
+    req.downloadHandler = new DownloadHandlerBuffer();
+    req.SetRequestHeader("Content-Type", "application/json");
 
-        var op = req.SendWebRequest();
-        while (!op.isDone) await Task.Yield();
+    var op = req.SendWebRequest();
+    while (!op.isDone) await Task.Yield();
 
-        if (req.result != UnityWebRequest.Result.Success)
-        {
-            Debug.LogWarning($"Ollama chat error: {req.error}");
-            return Fallback(sourceNames, sourceEmojis, targetTier, mode);
-        }
-
-        // Ollama /api/chat returns: { message: { role, content }, ... }
-        try
-        {
-            var root = JsonUtility.FromJson<ChatRoot>(req.downloadHandler.text);
-            var json = root.message.content;                 // this is schema-valid JSON
-            return JsonUtility.FromJson<AIResult>(json);
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"Parse fail: {e.Message}");
-            return Fallback(sourceNames, sourceEmojis, targetTier, mode);
-        }
-    }
-
-    [Serializable] class ChatMessage { public string role; public string content; }
-    [Serializable] class ChatRoot { public ChatMessage message; }
-
-    string BuildUserPrompt(string[] n, string[] e, int tier, MergeMode mode)
+    if (req.result != UnityWebRequest.Result.Success)
     {
-        // Tier “spice” (weirdness ramps by tier, but structure is still enforced by schema)
-        string spice = tier >= 7 ? "embrace surreal, dreamlike metaphors."
-                    : tier >= 5 ? "allow abstract nouns and folklore hints."
-                    : tier >= 3 ? "allow mild mythic metaphors."
-                    : "stay concrete and visual.";
-
-        // Mode grammar: Fusion vs Action (A acts on B)
-        string modeText = mode == MergeMode.Fusion
-          ? "Combine the items into a SINGLE concrete creature/object with a 1–2 word name."
-          : "Pretend the FIRST item acts on the others; produce a SINGLE resultant object with a 1–2 word name hinting that action.";
-
-        var list = "";
-        for (int i = 0; i < n.Length; i++) list += $"{(i > 0 ? ", " : "")}{(i < e.Length ? e[i] : "")} {n[i]}";
-
-        return $"Tier {tier}. {spice} {modeText} Items: {list}";
+      Debug.LogWarning($"Ollama chat error: {req.error}");
+      return Fallback(sourceNames, sourceEmojis, targetTier, mode);
     }
 
-    static string Escape(string s) =>
-      s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n");
-
-    AIResult Fallback(string[] src, string[] emo, int tier, MergeMode mode)
+    // Ollama /api/chat returns: { message: { role, content }, ... }
+    try
     {
-        var name = mode == MergeMode.Fusion ? $"{src[0]}-{src[^1]}" : $"{src[0]}-{(src.Length > 1 ? src[1] : src[0])}";
-        var emoji = (emo != null && emo.Length > 0 && !string.IsNullOrEmpty(emo[0])) ? emo[0] : "??";
-        var weight = Mathf.Clamp(2 + tier / 2, 1, 7);
-        return new AIResult { emoji = emoji, name = name, gloss = "Locally synthesized.", weight = weight, tags = new[] { "local" } };
+      var root = JsonUtility.FromJson<ChatRoot>(req.downloadHandler.text);
+      var json = root.message.content;                 // this is schema-valid JSON
+      return JsonUtility.FromJson<AIResult>(json);
     }
+    catch (Exception e)
+    {
+      Debug.LogWarning($"Parse fail: {e.Message}");
+      return Fallback(sourceNames, sourceEmojis, targetTier, mode);
+    }
+  }
+
+  [Serializable] class ChatMessage { public string role; public string content; }
+  [Serializable] class ChatRoot { public ChatMessage message; }
+
+  string BuildUserPrompt(string[] n, string[] e, int tier, MergeMode mode)
+  {
+    // Tier ï¿½spiceï¿½ (weirdness ramps by tier, but structure is still enforced by schema)
+    string spice = tier >= 7 ? "embrace surreal, dreamlike metaphors."
+                : tier >= 5 ? "allow abstract nouns and folklore hints."
+                : tier >= 3 ? "allow mild mythic metaphors."
+                : "stay concrete and visual.";
+
+    // Mode grammar: Fusion vs Action (A acts on B)
+    string modeText = mode == MergeMode.Fusion
+      ? "Combine the items into a SINGLE concrete creature/object with a 1ï¿½2 word name."
+      : "Pretend the FIRST item acts on the others; produce a SINGLE resultant object with a 1ï¿½2 word name hinting that action.";
+
+    var list = "";
+    for (int i = 0; i < n.Length; i++) list += $"{(i > 0 ? ", " : "")}{(i < e.Length ? e[i] : "")} {n[i]}";
+
+    return $"Tier {tier}. {spice} {modeText} Items: {list}";
+  }
+
+  static string Escape(string s) =>
+    s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n");
+
+  AIResult Fallback(string[] src, string[] emo, int tier, MergeMode mode)
+  {
+    var name = mode == MergeMode.Fusion ? $"{src[0]}-{src[^1]}" : $"{src[0]}-{(src.Length > 1 ? src[1] : src[0])}";
+    var emoji = (emo != null && emo.Length > 0 && !string.IsNullOrEmpty(emo[0])) ? emo[0] : "??";
+    var weight = Mathf.Clamp(2 + tier / 2, 1, 7);
+    return new AIResult { emoji = emoji, name = name, gloss = "Locally synthesized.", weight = weight, tags = new[] { "local" } };
+  }
+
+  // Added public method to test Ollama connection (Test Case)
+  public async void TestOllamaConnection() {
+      Debug.Log("Testing Ollama connection from AIClient...");
+      
+      // Define test parameters
+      string[] dummyNames = { "TestItem1", "TestItem2" };
+      string[] dummyEmojis = { "ðŸ˜€", "ðŸš€" };
+      int dummyTier = 5;
+      MergeMode dummyMode = MergeMode.Fusion;
+      
+      AIResult result = await GenerateAsync(dummyNames, dummyEmojis, dummyTier, dummyMode);
+      if (result != null) {
+          Debug.Log("Test Success: " + result.name + " | " + result.emoji);
+      } else {
+          Debug.LogWarning("Test Failed: No result returned.");
+      }
+  }
+
 }
