@@ -388,7 +388,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chatUrl: http://localhost:11434/api/chat
   model: granite3.1-moe:1b
-  temperature: 0.6
+  temperature: 1.1
   fusionPrompt: "Merge the creatures into a SINGLE hybrid creature with a 1\u20132
     word name."
   mergePrompt: "All the creatures fight and the FIRST creature wins, consuming the
