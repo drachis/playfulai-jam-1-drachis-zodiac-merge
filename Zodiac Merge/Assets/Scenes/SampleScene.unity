@@ -388,12 +388,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chatUrl: http://localhost:11434/api/chat
   model: granite3.1-moe:1b
-  temperature: 1.1
-  fusionPrompt: "Merge the creatures into a SINGLE hybrid creature with a 1\u20132
-    word name."
-  mergePrompt: "All the creatures fight and the FIRST creature wins, consuming the
-    others and absorbing the essense. Rename the winning creature with a 1\u20132
-    word name. "
+  temperature: 100100
+  fusionPrompt: "Pick unicode emoji that match the name., Merge the creatures into
+    a SINGLE hybrid creature with a 1\u20132 word name."
+  mergePrompt: "Pick unicode emoji that match the name. All the creatures fight and
+    the FIRST creature wins, consuming the others and absorbing the essense. Rename
+    the winning creature with a 1\u20132 word name. "
 --- !u!114 &1388589093
 MonoBehaviour:
   m_ObjectHideFlags: 0
