@@ -389,11 +389,26 @@ MonoBehaviour:
   chatUrl: http://localhost:11434/api/chat
   model: granite3.1-moe:1b
   temperature: 100100
-  fusionPrompt: "Pick unicode emoji that match the name., Merge the creatures into
-    a SINGLE hybrid creature with a 1\u20132 word name."
-  mergePrompt: "Pick unicode emoji that match the name. All the creatures fight and
-    the FIRST creature wins, consuming the others and absorbing the essense. Rename
-    the winning creature with a 1\u20132 word name. "
+  actionPrompt: "The FIRST creature creature maintains most of it self and absorbs
+    the essense of all the rest. Provide the winning creature a 2\u20134 word name
+    to match it's increased power. The name feel like a creature from the game Puzzle
+    and Dragons."
+  mergePrompt: "Blend the creatures into a SINGLE hybrid creature with a 1\u20134
+    word name. The name feel like a creature from the game Puzzle and Dragons."
+  testTier: 6
+  testMergeMode: 1
+  testMerge:
+  - Earth Snake
+  - shadow ninja
+  - water horse
+  - lightning pirate
+  - Fire Dragon
+  testEmoji:
+  - "\U0001F434"
+  - "\U0001F464"
+  - "\U0001F409"
+  - "\U0001F40D"
+  - "\u26A1\uFE0F"
 --- !u!114 &1388589093
 MonoBehaviour:
   m_ObjectHideFlags: 0

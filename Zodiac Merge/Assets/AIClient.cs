@@ -13,7 +13,6 @@ public class AIResult
     public int weight;
     public string[] tags;
 }
-
 public enum MergeMode { Fusion, Action }
 
 public class AIClient : MonoBehaviour
@@ -71,10 +70,15 @@ public class AIClient : MonoBehaviour
 
   public string actionPrompt = "Combine the creatures into a SINGLE hybrid creature with a 1–2 word name.";
   public string mergePrompt = "Pretend the FIRST creature does fuses with the others; produce a SINGLE child creature with a 1–2 word name.";
- 
+  
+      public int testTier = 1;
+    public MergeMode testMergeMode = MergeMode.Fusion;
+    public string[] testMerge = { "water horse", "shadow ninja", "Fire Dragon", "Earth Snake", "lightning pirate" };
+    
+    public string[] testEmoji = { "🐴", "👤", "🐉", "🐍", "⚡️" };
 
     // Ollama structured output JSON Schema
-  readonly string nameSchemaJson = @"
+    readonly string nameSchemaJson = @"
     {
       ""type"": ""object"",
       ""properties"": {
@@ -91,6 +95,7 @@ public class AIClient : MonoBehaviour
         // Step 1: Get merged creature name
         string userPrompt = BuildUserPrompt(sourceNames, targetTier, mode);
         string sys = "You return ONLY the fields described by the provided JSON Schema.";
+        float  temperatureValue = Mathf.Pow(1.25f, targetTier - 1)-0.8f;
         string payload = "{"
             + "\"model\": \"" + model + "\"," 
             + "\"messages\": ["
@@ -99,7 +104,7 @@ public class AIClient : MonoBehaviour
             + "],"
             + "\"stream\": false,"
             + "\"format\": " + nameSchemaJson + ","
-            + "\"options\": { \"temperature\": " + "1e" + targetTier + " }"
+            + "\"options\": { \"temperature\": " + temperatureValue.ToString() + " }"
             + "}";
 
         Debug.Log("📤 Sending to Ollama (step 1):\n" + payload);
@@ -114,7 +119,7 @@ public class AIClient : MonoBehaviour
         string mergedName = result.name;
 
         // Step 2: Ask for 1-4 emojis representing the merged creature
-        string emojiPrompt = $"Give 1-4 emoji that best represent the creature named '{mergedName}'. Respond ONLY with emoji, no text.";
+        string emojiPrompt = $"Provide 1-2 emoji that show the traits of a '{mergedName}'. Respond ONLY with unicode emoji. No text.";
             string emojiSchemaJson = "{\"type\":\"object\",\"properties\":{\"emoji\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":4}},\"required\":[\"emoji\"]}";
             string emojiPayload = "{"
                 + "\"model\": \"" + model + "\"," 
@@ -124,7 +129,7 @@ public class AIClient : MonoBehaviour
                 + "],"
                 + "\"stream\": false,"
                 + "\"format\": " + emojiSchemaJson + ","
-                + "\"options\": { \"temperature\": " + "1e" + targetTier + " }"
+                + "\"options\": { \"temperature\": " + (temperatureValue/5).ToString() + " }"
                 + "}";
 
         Debug.Log("📤 Sending to Ollama (step 2):\n" + emojiPayload);
@@ -167,19 +172,24 @@ public class AIClient : MonoBehaviour
     }
 
     // Public test method that MUST be awaited
-    public async Task TestOllamaConnection()
-    {
-        Debug.Log("🚀 Testing Ollama connection...");
-        var result = await GenerateAsync(
-            new[] { "water horse","shadow ninja","Fire Dragon", "Earth Snake", "butt pirate",  "ben sherman"   },
-            new[] { "return 2 emoji", "💦🐴","🌚🥷","🐍🌱","🏴‍☠️🍑","🦅🐿️" },
-            1,
-            MergeMode.Fusion
-        );
+// Public test method that MUST be awaited
+public async Task TestOllamaConnection()
+{
+    Debug.Log("🚀 Testing Ollama connection...");
 
-        if (result != null)
-            Debug.Log($"✅ Test Success: {result.name} | {result.emoji}");
-        else
-            Debug.LogWarning("❌ Test Failed: No result returned.");
-    }
+    // Set fixed values for tier and mergeMode
+
+
+    var result = await GenerateAsync(
+        testMerge,
+        testEmoji,
+        testTier,
+        testMergeMode
+    );
+
+    if (result != null)
+        Debug.Log($"✅ Test Success: {result.name} | {result.emoji}");
+    else
+        Debug.LogWarning("❌ Test Failed: No result returned.");
+}
 }
